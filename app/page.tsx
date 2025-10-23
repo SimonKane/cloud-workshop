@@ -17,11 +17,21 @@ export default function Home() {
       setError("");
       const response = await fetch("/api/todos");
       const data = await response.json();
-      setTodos(data.todos);
-      setLastFetchTime(new Date().toLocaleTimeString());
+
+      if (!response.ok) {
+        throw new Error(data.details || data.error || "Failed to fetch todos");
+      }
+
+      if (data.todos && Array.isArray(data.todos)) {
+        setTodos(data.todos);
+        setLastFetchTime(new Date().toLocaleTimeString());
+      } else {
+        throw new Error("Invalid response format");
+      }
     } catch (err) {
-      setError("Failed to fetch todos");
+      setError(err instanceof Error ? err.message : "Failed to fetch todos");
       console.error("Error fetching todos:", err);
+      setTodos([]); // Set empty array on error
     } finally {
       setIsLoading(false);
     }
