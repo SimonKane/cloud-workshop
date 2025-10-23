@@ -17,11 +17,21 @@ export default function Home() {
       setError("");
       const response = await fetch("/api/todos");
       const data = await response.json();
-      setTodos(data.todos);
-      setLastFetchTime(new Date().toLocaleTimeString());
+
+      if (!response.ok) {
+        throw new Error(data.details || data.error || "Failed to fetch todos");
+      }
+
+      if (data.todos && Array.isArray(data.todos)) {
+        setTodos(data.todos);
+        setLastFetchTime(new Date().toLocaleTimeString());
+      } else {
+        throw new Error("Invalid response format");
+      }
     } catch (err) {
-      setError("Failed to fetch todos");
+      setError(err instanceof Error ? err.message : "Failed to fetch todos");
       console.error("Error fetching todos:", err);
+      setTodos([]); // Set empty array on error
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +123,7 @@ export default function Home() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="text-4xl font-bold text-blue-800 mb-2">
+          <h1 className="text-4xl font-bold text-red-500 mb-2">
             Serverless Todo App
           </h1>
           <p className="text-gray-600">
@@ -121,7 +131,6 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Warning Banner */}
         <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6 rounded-r-lg shadow-md">
           <p className="text-sm text-yellow-800">
             <span className="font-bold">⚠️ Demo Mode:</span> Todos are stored
