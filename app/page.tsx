@@ -191,7 +191,7 @@ export default function Home() {
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
                 >
                   <div className="flex-1">
-                    <p className="text-red-800">{todo.text}</p>
+                    <p className="text-red-400">{todo.text}</p>
                     <p className="text-xs text-gray-500 mt-1">
                       {getRelativeTime(todo.createdAt)}
                     </p>
