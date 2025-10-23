@@ -1,42 +1,47 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { storage } from '@/lib/storage';
-import { Todo } from '@/lib/types';
+import { NextResponse } from "next/server";
+import { connectDB } from "@/lib/mongodb";
+import Todo from "@/models/Todo";
 
-export async function GET() {
-  const todos = storage.getAll();
-
-  return NextResponse.json({
-    todos,
-    warning: 'These todos will disappear soon! (Serverless demo)'
-  });
+// Hjälper oss mappa Mongo _id -> id (string) & plocka ut createdAt
+function toDTO(doc: any) {
+  return { id: String(doc._id), text: doc.text, createdAt: doc.createdAt };
 }
 
-export async function POST(request: NextRequest) {
+export async function GET() {
   try {
-    const body = await request.json();
-    const { text } = body;
-
-    if (!text || typeof text !== 'string' || text.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Text is required' },
-        { status: 400 }
-      );
-    }
-
-    const newTodo: Todo = {
-      id: crypto.randomUUID(),
-      text: text.trim(),
-      completed: false,
-      createdAt: new Date().toISOString()
-    };
-
-    storage.add(newTodo);
-
-    return NextResponse.json({ todo: newTodo }, { status: 201 });
+    await connectDB();
+    const docs = await Todo.find().sort({ createdAt: -1 }).lean();
+    const todos = docs.map(toDTO);
+    return NextResponse.json({ todos });
   } catch (error) {
+    console.error("GET /api/todos error:", error);
     return NextResponse.json(
-      { error: 'Invalid request' },
-      { status: 400 }
+      {
+        error: "Failed to fetch todos",
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const { text } = await req.json();
+    if (!text || !text.trim()) {
+      return NextResponse.json({ error: "text required" }, { status: 400 });
+    }
+    await connectDB();
+    const created = await Todo.create({ text: text.trim() });
+    return NextResponse.json({ todo: toDTO(created) }, { status: 201 });
+  } catch (error) {
+    console.error("POST /api/todos error:", error);
+    return NextResponse.json(
+      {
+        error: "Failed to create todo",
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
     );
   }
 }
