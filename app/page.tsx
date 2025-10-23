@@ -1,27 +1,27 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Todo } from '@/lib/types';
+import { useState, useEffect } from "react";
+import { Todo } from "@/lib/types";
 
 export default function Home() {
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [newTodoText, setNewTodoText] = useState('');
+  const [newTodoText, setNewTodoText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
-  const [lastFetchTime, setLastFetchTime] = useState<string>('');
-  const [error, setError] = useState<string>('');
+  const [lastFetchTime, setLastFetchTime] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   const fetchTodos = async () => {
     try {
       setIsLoading(true);
-      setError('');
-      const response = await fetch('/api/todos');
+      setError("");
+      const response = await fetch("/api/todos");
       const data = await response.json();
       setTodos(data.todos);
       setLastFetchTime(new Date().toLocaleTimeString());
     } catch (err) {
-      setError('Failed to fetch todos');
-      console.error('Error fetching todos:', err);
+      setError("Failed to fetch todos");
+      console.error("Error fetching todos:", err);
     } finally {
       setIsLoading(false);
     }
@@ -45,28 +45,28 @@ export default function Home() {
 
     try {
       setIsAdding(true);
-      setError('');
+      setError("");
 
-      const response = await fetch('/api/todos', {
-        method: 'POST',
+      const response = await fetch("/api/todos", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ text: newTodoText }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add todo');
+        throw new Error("Failed to add todo");
       }
 
       const data = await response.json();
 
       // Optimistic update
       setTodos([...todos, data.todo]);
-      setNewTodoText('');
+      setNewTodoText("");
     } catch (err) {
-      setError('Failed to add todo');
-      console.error('Error adding todo:', err);
+      setError("Failed to add todo");
+      console.error("Error adding todo:", err);
     } finally {
       setIsAdding(false);
     }
@@ -74,21 +74,21 @@ export default function Home() {
 
   const deleteTodo = async (id: string) => {
     try {
-      setError('');
+      setError("");
 
       // Optimistic update
-      setTodos(todos.filter(todo => todo.id !== id));
+      setTodos(todos.filter((todo) => todo.id !== id));
 
       const response = await fetch(`/api/todos/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete todo');
+        throw new Error("Failed to delete todo");
       }
     } catch (err) {
-      setError('Failed to delete todo');
-      console.error('Error deleting todo:', err);
+      setError("Failed to delete todo");
+      console.error("Error deleting todo:", err);
       // Refresh to get actual state
       fetchTodos();
     }
@@ -113,7 +113,7 @@ export default function Home() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+          <h1 className="text-4xl font-bold text-blue-800 mb-2">
             Serverless Todo App
           </h1>
           <p className="text-gray-600">
@@ -124,8 +124,8 @@ export default function Home() {
         {/* Warning Banner */}
         <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6 rounded-r-lg shadow-md">
           <p className="text-sm text-yellow-800">
-            <span className="font-bold">⚠️ Demo Mode:</span> Todos are stored in-memory and will
-            disappear when the serverless function restarts!
+            <span className="font-bold">⚠️ Demo Mode:</span> Todos are stored
+            in-memory and will disappear when the serverless function restarts!
             This shows why we need databases. 🎓
           </p>
         </div>
@@ -155,7 +155,7 @@ export default function Home() {
                 disabled={isAdding || !newTodoText.trim()}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {isAdding ? 'Adding...' : 'Add Todo'}
+                {isAdding ? "Adding..." : "Add Todo"}
               </button>
             </div>
           </form>
@@ -201,10 +201,9 @@ export default function Home() {
           {/* Stats */}
           <div className="mt-6 pt-4 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
-              Current session: {todos.length} {todos.length === 1 ? 'todo' : 'todos'}
-              {lastFetchTime && (
-                <> | Last fetched: {lastFetchTime}</>
-              )}
+              Current session: {todos.length}{" "}
+              {todos.length === 1 ? "todo" : "todos"}
+              {lastFetchTime && <> | Last fetched: {lastFetchTime}</>}
             </p>
           </div>
         </div>
